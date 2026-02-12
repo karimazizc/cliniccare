@@ -3,136 +3,135 @@
 from database import engine, SessionLocal, Base
 from models import DiagnosisCode, Consultation
 
-# 100 Common ICD-10 Diagnosis Codes
+# 100 ICD-10 Codes — Certain Infectious and Parasitic Diseases (A00-B99)
 ICD10_CODES = [
-    # Endocrine, Nutritional, and Metabolic Diseases (E00-E89)
-    ("E11.9", "Type 2 diabetes mellitus without complications"),
-    ("E11.65", "Type 2 diabetes mellitus with hyperglycemia"),
-    ("E11.21", "Type 2 diabetes mellitus with diabetic nephropathy"),
-    ("E11.40", "Type 2 diabetes mellitus with diabetic neuropathy, unspecified"),
-    ("E10.9", "Type 1 diabetes mellitus without complications"),
-    ("E03.9", "Hypothyroidism, unspecified"),
-    ("E05.90", "Thyrotoxicosis, unspecified without thyrotoxic crisis"),
-    ("E78.5", "Hyperlipidemia, unspecified"),
-    ("E78.0", "Pure hypercholesterolemia"),
-    ("E66.9", "Obesity, unspecified"),
-    ("E55.9", "Vitamin D deficiency, unspecified"),
-    ("E87.6", "Hypokalemia"),
-    
-    # Diseases of the Circulatory System (I00-I99)
-    ("I10", "Essential (primary) hypertension"),
-    ("I11.9", "Hypertensive heart disease without heart failure"),
-    ("I25.10", "Atherosclerotic heart disease of native coronary artery"),
-    ("I48.91", "Unspecified atrial fibrillation"),
-    ("I48.0", "Paroxysmal atrial fibrillation"),
-    ("I50.9", "Heart failure, unspecified"),
-    ("I50.22", "Chronic systolic (congestive) heart failure"),
-    ("I63.9", "Cerebral infarction, unspecified"),
-    ("I73.9", "Peripheral vascular disease, unspecified"),
-    ("I87.2", "Venous insufficiency (chronic) (peripheral)"),
-    ("I83.90", "Asymptomatic varicose veins of unspecified lower extremity"),
-    
-    # Diseases of the Respiratory System (J00-J99)
-    ("J45.909", "Unspecified asthma, uncomplicated"),
-    ("J45.20", "Mild intermittent asthma, uncomplicated"),
-    ("J45.30", "Mild persistent asthma, uncomplicated"),
-    ("J44.9", "Chronic obstructive pulmonary disease, unspecified"),
-    ("J44.1", "Chronic obstructive pulmonary disease with acute exacerbation"),
-    ("J06.9", "Acute upper respiratory infection, unspecified"),
-    ("J20.9", "Acute bronchitis, unspecified"),
-    ("J18.9", "Pneumonia, unspecified organism"),
-    ("J30.9", "Allergic rhinitis, unspecified"),
-    ("J32.9", "Chronic sinusitis, unspecified"),
-    ("J02.9", "Acute pharyngitis, unspecified"),
-    ("J03.90", "Acute tonsillitis, unspecified"),
-    
-    # Diseases of the Digestive System (K00-K95)
-    ("K21.0", "Gastro-esophageal reflux disease with esophagitis"),
-    ("K21.9", "Gastro-esophageal reflux disease without esophagitis"),
-    ("K29.70", "Gastritis, unspecified, without bleeding"),
-    ("K30", "Functional dyspepsia"),
-    ("K58.9", "Irritable bowel syndrome without diarrhea"),
-    ("K59.00", "Constipation, unspecified"),
-    ("K76.0", "Fatty (change of) liver, not elsewhere classified"),
-    ("K80.20", "Calculus of gallbladder without cholecystitis"),
-    ("K85.90", "Acute pancreatitis without necrosis or infection, unspecified"),
-    
-    # Diseases of the Musculoskeletal System (M00-M99)
-    ("M79.3", "Panniculitis, unspecified"),
-    ("M54.5", "Low back pain"),
-    ("M54.2", "Cervicalgia"),
-    ("M25.50", "Pain in unspecified joint"),
-    ("M17.9", "Osteoarthritis of knee, unspecified"),
-    ("M16.9", "Osteoarthritis of hip, unspecified"),
-    ("M19.90", "Unspecified osteoarthritis, unspecified site"),
-    ("M10.9", "Gout, unspecified"),
-    ("M81.0", "Age-related osteoporosis without current pathological fracture"),
-    ("M62.830", "Muscle spasm of back"),
-    ("M75.100", "Unspecified rotator cuff tear of unspecified shoulder"),
-    ("M79.1", "Myalgia"),
-    
-    # Mental, Behavioral, and Neurodevelopmental Disorders (F01-F99)
-    ("F32.9", "Major depressive disorder, single episode, unspecified"),
-    ("F33.0", "Major depressive disorder, recurrent, mild"),
-    ("F41.1", "Generalized anxiety disorder"),
-    ("F41.9", "Anxiety disorder, unspecified"),
-    ("F43.10", "Post-traumatic stress disorder, unspecified"),
-    ("F51.01", "Primary insomnia"),
-    ("F90.9", "Attention-deficit hyperactivity disorder, unspecified type"),
-    
-    # Diseases of the Genitourinary System (N00-N99)
-    ("N39.0", "Urinary tract infection, site not specified"),
-    ("N40.0", "Benign prostatic hyperplasia without lower urinary tract symptoms"),
-    ("N18.3", "Chronic kidney disease, stage 3 (moderate)"),
-    ("N18.9", "Chronic kidney disease, unspecified"),
-    ("N95.1", "Menopausal and female climacteric states"),
-    
-    # Diseases of the Skin and Subcutaneous Tissue (L00-L99)
-    ("L30.9", "Dermatitis, unspecified"),
-    ("L20.9", "Atopic dermatitis, unspecified"),
-    ("L50.9", "Urticaria, unspecified"),
-    ("L40.9", "Psoriasis, unspecified"),
-    ("L70.0", "Acne vulgaris"),
-    ("L03.90", "Cellulitis, unspecified"),
-    
-    # Diseases of the Eye and Adnexa (H00-H59)
-    ("H10.9", "Unspecified conjunctivitis"),
-    ("H52.4", "Presbyopia"),
-    ("H40.9", "Unspecified glaucoma"),
-    ("H26.9", "Unspecified cataract"),
-    
-    # Diseases of the Ear and Mastoid Process (H60-H95)
-    ("H66.90", "Otitis media, unspecified, unspecified ear"),
-    ("H61.20", "Impacted cerumen, unspecified ear"),
-    
-    # Diseases of the Nervous System (G00-G99)
-    ("G43.909", "Migraine, unspecified, not intractable, without status migrainosus"),
-    ("G47.00", "Insomnia, unspecified"),
-    ("G47.33", "Obstructive sleep apnea (adult) (pediatric)"),
-    ("G89.29", "Other chronic pain"),
-    ("G62.9", "Polyneuropathy, unspecified"),
-    
-    # Symptoms, Signs, and Abnormal Clinical Findings (R00-R99)
-    ("R51.9", "Headache, unspecified"),
-    ("R10.9", "Unspecified abdominal pain"),
-    ("R05.9", "Cough, unspecified"),
-    ("R50.9", "Fever, unspecified"),
-    ("R53.83", "Other fatigue"),
-    ("R42", "Dizziness and giddiness"),
-    ("R00.0", "Tachycardia, unspecified"),
-    ("R11.10", "Vomiting, unspecified"),
-    ("R63.4", "Abnormal weight loss"),
-    
-    # Injury, Poisoning, and External Causes (S00-T88)
-    ("S93.401A", "Sprain of unspecified ligament of right ankle, initial encounter"),
-    ("S83.90XA", "Sprain of unspecified site of unspecified knee, initial encounter"),
-    ("S61.001A", "Unspecified open wound of right thumb without damage to nail, initial encounter"),
-    
-    # Factors Influencing Health Status (Z00-Z99)
-    ("Z00.00", "Encounter for general adult medical examination without abnormal findings"),
-    ("Z23", "Encounter for immunization"),
-    ("Z96.1", "Presence of intraocular lens"),
-    ("Z87.891", "Personal history of nicotine dependence"),
+    # Intestinal Infectious Diseases (A00-A09)
+    ("A00.0", "Cholera due to Vibrio cholerae 01, biovar cholerae"),
+    ("A00.1", "Cholera due to Vibrio cholerae 01, biovar eltor"),
+    ("A00.9", "Cholera, unspecified"),
+    ("A01.0", "Typhoid fever"),
+    ("A01.1", "Paratyphoid fever A"),
+    ("A01.2", "Paratyphoid fever B"),
+    ("A01.3", "Paratyphoid fever C"),
+    ("A01.4", "Paratyphoid fever, unspecified"),
+    ("A02.0", "Salmonella enteritis"),
+    ("A02.1", "Salmonella sepsis"),
+    ("A03.0", "Shigellosis due to Shigella dysenteriae"),
+    ("A03.9", "Shigellosis, unspecified"),
+    ("A04.0", "Enteropathogenic Escherichia coli infection"),
+    ("A04.5", "Campylobacter enteritis"),
+    ("A04.7", "Enterocolitis due to Clostridium difficile"),
+    ("A04.72", "Enterocolitis due to Clostridium difficile, recurrent"),
+    ("A05.1", "Botulism food poisoning"),
+    ("A06.0", "Acute amebic dysentery"),
+    ("A06.9", "Amebiasis, unspecified"),
+    ("A07.1", "Giardiasis [lambliasis]"),
+    ("A08.0", "Rotaviral enteritis"),
+    ("A08.11", "Acute gastroenteropathy due to Norwalk agent"),
+    ("A09", "Infectious gastroenteritis and colitis, unspecified"),
+
+    # Tuberculosis (A15-A19)
+    ("A15.0", "Tuberculosis of lung"),
+    ("A15.5", "Tuberculosis of larynx, trachea and bronchus"),
+    ("A15.6", "Tuberculous pleurisy"),
+    ("A15.9", "Respiratory tuberculosis, unspecified"),
+    ("A17.0", "Tuberculous meningitis"),
+    ("A18.2", "Tuberculous peripheral lymphadenopathy"),
+    ("A19.0", "Acute miliary tuberculosis of a single specified site"),
+    ("A19.9", "Miliary tuberculosis, unspecified"),
+
+    # Certain Zoonotic Bacterial Diseases (A20-A28)
+    ("A20.0", "Bubonic plague"),
+    ("A22.1", "Pulmonary anthrax"),
+    ("A23.9", "Brucellosis, unspecified"),
+    ("A27.0", "Leptospirosis icterohemorrhagica"),
+    ("A27.9", "Leptospirosis, unspecified"),
+
+    # Other Bacterial Diseases (A30-A49)
+    ("A30.9", "Leprosy [Hansen disease], unspecified"),
+    ("A31.0", "Pulmonary mycobacterial infection"),
+    ("A32.7", "Listerial sepsis"),
+    ("A33", "Tetanus neonatorum"),
+    ("A35", "Other tetanus"),
+    ("A36.0", "Pharyngeal diphtheria"),
+    ("A37.90", "Whooping cough, unspecified species without pneumonia"),
+    ("A38.9", "Scarlet fever, uncomplicated"),
+    ("A39.0", "Meningococcal meningitis"),
+    ("A40.0", "Sepsis due to streptococcus, group A"),
+    ("A41.01", "Sepsis due to Methicillin susceptible Staphylococcus aureus"),
+    ("A41.02", "Sepsis due to Methicillin resistant Staphylococcus aureus"),
+    ("A41.9", "Sepsis, unspecified organism"),
+    ("A46", "Erysipelas"),
+    ("A48.0", "Gas gangrene"),
+    ("A49.01", "Methicillin susceptible Staphylococcus aureus infection, unspecified site"),
+    ("A49.02", "Methicillin resistant Staphylococcus aureus infection, unspecified site"),
+
+    # Infections with a Predominantly Sexual Mode of Transmission (A50-A64)
+    ("A50.9", "Congenital syphilis, unspecified"),
+    ("A51.0", "Primary genital syphilis"),
+    ("A53.9", "Syphilis, unspecified"),
+    ("A54.00", "Gonococcal infection of lower genitourinary tract, unspecified"),
+    ("A56.0", "Chlamydial infection of lower genitourinary tract"),
+    ("A56.2", "Chlamydial infection of genitourinary tract, unspecified"),
+    ("A59.9", "Trichomoniasis, unspecified"),
+    ("A60.00", "Herpesviral infection of urogenital system, unspecified"),
+    ("A63.0", "Anogenital (venereal) warts"),
+
+    # Other Spirochetal Diseases (A65-A69)
+    ("A69.20", "Lyme disease, unspecified"),
+    ("A69.21", "Meningitis due to Lyme disease"),
+    ("A69.29", "Other conditions associated with Lyme disease"),
+
+    # Other Diseases Caused by Chlamydiae (A70-A74)
+    ("A70", "Chlamydia psittaci infections"),
+    ("A71.9", "Trachoma, unspecified"),
+
+    # Rickettsioses (A75-A79)
+    ("A77.0", "Spotted fever due to Rickettsia rickettsii"),
+    ("A79.9", "Rickettsiosis, unspecified"),
+
+    # Viral and Prion Infections of the Central Nervous System (A80-A89)
+    ("A80.9", "Acute poliomyelitis, unspecified"),
+    ("A81.0", "Creutzfeldt-Jakob disease"),
+    ("A82.9", "Rabies, unspecified"),
+    ("A84.9", "Tick-borne viral encephalitis, unspecified"),
+    ("A86", "Unspecified viral encephalitis"),
+    ("A87.9", "Viral meningitis, unspecified"),
+
+    # Arthropod-Borne Viral Fevers and Viral Hemorrhagic Fevers (A90-A99)
+    ("A90", "Dengue fever [classical dengue]"),
+    ("A91", "Dengue hemorrhagic fever"),
+    ("A92.5", "Zika virus disease"),
+    ("A95.9", "Yellow fever, unspecified"),
+    ("A97.0", "Dengue without warning signs"),
+
+    # Viral Infections Characterized by Skin and Mucous Membrane Lesions (B00-B09)
+    ("B00.1", "Herpesviral vesicular dermatitis"),
+    ("B00.9", "Herpesviral infection, unspecified"),
+    ("B01.9", "Varicella without complication"),
+    ("B02.9", "Zoster without complications"),
+    ("B05.9", "Measles without complication"),
+    ("B06.9", "Rubella without complication"),
+    ("B07.9", "Viral wart, unspecified"),
+    ("B08.4", "Enteroviral vesicular stomatitis with exanthem"),
+    ("B09", "Unspecified viral infection characterized by skin and mucous membrane lesions"),
+
+    # Viral Hepatitis (B15-B19)
+    ("B15.9", "Hepatitis A without hepatic coma"),
+    ("B16.9", "Acute hepatitis B without delta-agent and without hepatic coma"),
+    ("B17.10", "Acute hepatitis C without hepatic coma"),
+    ("B18.1", "Chronic viral hepatitis B without delta-agent"),
+    ("B18.2", "Chronic viral hepatitis C"),
+    ("B19.9", "Unspecified viral hepatitis without hepatic coma"),
+
+    # HIV Disease (B20)
+    ("B20", "Human immunodeficiency virus [HIV] disease"),
+
+    # Other Viral Diseases (B25-B34)
+    ("B25.9", "Cytomegaloviral disease, unspecified"),
+    ("B26.9", "Mumps without complication"),
+    ("B27.00", "Gammaherpesviral mononucleosis without complication"),
+    ("B34.9", "Viral infection, unspecified"),
 ]
 
 
